@@ -5,56 +5,56 @@ const cors = require("cors");
 const app = express();
 
 // Configuração completa do CORS
-const allowedOrigins = ['https://projeto-final-one-ruby.vercel.app'];
+const corsOptions = {
+  origin: 'https://projeto-final-one-ruby.vercel.app',
+  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  optionsSuccessStatus: 200
+};
 
-// Middleware CORS personalizado
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
-    res.header('Access-Control-Allow-Origin', origin);
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type');
-  }
-  
-  // Resposta para requisições OPTIONS (preflight)
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-  
-  next();
-});
+// Aplicar CORS globalmente
+app.use(cors(corsOptions));
+
+// Middleware para aceitar requisições OPTIONS (preflight)
+app.options('*', cors(corsOptions));
 
 // Outros middlewares
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Dados de usuários (mantido como no seu exemplo)
+// Dados de usuários
 const users = [
   { name: "admin", password: "123456", role: "admin", email: "admin@email.com", telephone: "123456789" },
   { name: "user", password: "123456", role: "user", email: "user@email.com", telephone: "987654321" },
 ];
 
-// Rota de login com tratamento CORS explícito
+// Rotas de Autenticação
 app.post("/login", (req, res) => {
-  // Headers CORS explícitos para esta rota
-  res.header('Access-Control-Allow-Origin', 'https://projeto-final-one-ruby.vercel.app');
-  res.header('Access-Control-Allow-Methods', 'POST');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  try {
+    const { name, password } = req.body;
 
-  const { name, password } = req.body;
-  const user = users.find(u => u.name === name && u.password === password);
+    if (!name || !password) {
+      return res.status(400).json({ message: "Nome e senha são obrigatórios!" });
+    }
 
-  if (!user) {
-    return res.status(401).json({ message: "Usuário ou senha incorretos!" });
+    const user = users.find(u => u.name === name && u.password === password);
+    
+    if (!user) {
+      return res.status(401).json({ message: "Usuário ou senha incorretos!" });
+    }
+
+    return res.status(200).json({
+      id: users.indexOf(user) + 1,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      telephone: user.telephone
+    });
+  } catch (error) {
+    console.error("Erro no login:", error);
+    res.status(500).json({ message: "Erro interno no servidor" });
   }
-
-  res.json({
-    id: users.indexOf(user) + 1,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    telephone: user.telephone
-  });
 });
 const produtos = [
   {
