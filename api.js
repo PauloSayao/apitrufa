@@ -180,6 +180,8 @@ app.delete("/pedidos", (req, res) => {
   pedidosSalvos.length = 0;
   return res.status(200).json({ message: "Todos os pedidos foram removidos!" });
 });
-app.listen(3001, () => {
-  console.log("API running on http://localhost:3001/");
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(`API rodando na porta ${PORT}`);
 });
+
