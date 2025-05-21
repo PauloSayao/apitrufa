@@ -4,52 +4,58 @@ const cors = require("cors");
 
 const app = express();
 
-// Configuração do CORS para o Render
+// Configuração completa do CORS
 const allowedOrigins = ['https://projeto-final-one-ruby.vercel.app'];
 
-const corsOptions = {
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type'],
-  optionsSuccessStatus: 200
-};
+// Middleware CORS personalizado
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+  }
+  
+  // Resposta para requisições OPTIONS (preflight)
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  
+  next();
+});
 
-// Middlewares
-app.use(cors(corsOptions));
+// Outros middlewares
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Configurar OPTIONS para cada rota individualmente
-const routesNeedingOptions = ['/login', '/register', '/produtos', '/pedidos'];
-
-routesNeedingOptions.forEach(route => {
-  app.options(route, cors(corsOptions));
-});
-
-// Dados iniciais (para fins acadêmicos)
+// Dados de usuários (mantido como no seu exemplo)
 const users = [
-  { 
-    name: "admin", 
-    password: "123456", // Senha em texto puro (apenas para fins acadêmicos)
-    role: "admin", 
-    email: "admin@email.com",
-    telephone: "123456789" 
-  },
-  { 
-    name: "user", 
-    password: "123456", // Senha em texto puro (apenas para fins acadêmicos)
-    role: "user", 
-    email: "user@email.com",
-    telephone: "987654321" 
-  },
+  { name: "admin", password: "123456", role: "admin", email: "admin@email.com", telephone: "123456789" },
+  { name: "user", password: "123456", role: "user", email: "user@email.com", telephone: "987654321" },
 ];
 
+// Rota de login com tratamento CORS explícito
+app.post("/login", (req, res) => {
+  // Headers CORS explícitos para esta rota
+  res.header('Access-Control-Allow-Origin', 'https://projeto-final-one-ruby.vercel.app');
+  res.header('Access-Control-Allow-Methods', 'POST');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+
+  const { name, password } = req.body;
+  const user = users.find(u => u.name === name && u.password === password);
+
+  if (!user) {
+    return res.status(401).json({ message: "Usuário ou senha incorretos!" });
+  }
+
+  res.json({
+    id: users.indexOf(user) + 1,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    telephone: user.telephone
+  });
+});
 const produtos = [
   {
     id: 1,
