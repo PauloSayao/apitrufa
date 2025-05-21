@@ -1,7 +1,6 @@
 const express = require("express");
 const path = require("path");
 const cors = require("cors");
-const bcrypt = require("bcryptjs");
 
 const app = express();
 
@@ -16,18 +15,18 @@ app.use(cors({
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Dados iniciais (em produção, substituir por banco de dados)
+// Dados iniciais (com senhas em texto puro para fins acadêmicos)
 const users = [
   { 
     name: "admin", 
-    password: bcrypt.hashSync("123456", 10), 
+    password: "123456", // Senha em texto puro
     role: "admin", 
     email: "admin@email.com",
     telephone: "123456789" 
   },
   { 
     name: "user", 
-    password: bcrypt.hashSync("123456", 10), 
+    password: "123456", // Senha em texto puro
     role: "user", 
     email: "user@email.com",
     telephone: "987654321" 
@@ -86,7 +85,7 @@ const pedidosSalvos = [];
 let pedidoIdCounter = 1;
 
 // Rotas de Autenticação
-app.post("/login", async (req, res) => {
+app.post("/login", (req, res) => {
   try {
     const { name, password } = req.body;
 
@@ -94,9 +93,9 @@ app.post("/login", async (req, res) => {
       return res.status(400).json({ message: "Nome e senha são obrigatórios!" });
     }
 
-    const user = users.find(u => u.name === name);
+    const user = users.find(u => u.name === name && u.password === password);
     
-    if (!user || !bcrypt.compareSync(password, user.password)) {
+    if (!user) {
       return res.status(401).json({ message: "Usuário ou senha incorretos!" });
     }
 
@@ -113,7 +112,7 @@ app.post("/login", async (req, res) => {
   }
 });
 
-app.post("/register", async (req, res) => {
+app.post("/register", (req, res) => {
   try {
     const { name, password, email, fullName, telephone } = req.body;
 
@@ -134,7 +133,7 @@ app.post("/register", async (req, res) => {
 
     const newUser = {
       name,
-      password: bcrypt.hashSync(password, 10),
+      password, // Senha em texto puro (para fins acadêmicos)
       email,
       fullName,
       telephone,
