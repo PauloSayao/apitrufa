@@ -257,8 +257,8 @@ app.use((err, req, res, next) => {
 // INICIAR SERVIDOR
 // =============================================
 
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
+const PORT = 3001;
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Servidor rodando na porta ${PORT}`);
   console.log(`Origens permitidas: ${allowedOrigins.join(', ')}`);
 });
