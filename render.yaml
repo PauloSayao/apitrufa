@@ -3,6 +3,7 @@ services:
     name: api-trufas
     env: node
     plan: free
+    port: 3001
     buildCommand: npm install
     startCommand: npm start
     envVars:
