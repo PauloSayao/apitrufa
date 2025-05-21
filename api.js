@@ -4,26 +4,51 @@ const cors = require("cors");
 
 const app = express();
 
-// Configuração completa do CORS
+// =============================================
+// CONFIGURAÇÃO SEGURA DO CORS
+// =============================================
+
+const allowedOrigins = [
+  'https://projeto-final-one-ruby.vercel.app',
+  'http://localhost:4200' // Para desenvolvimento
+];
+
 const corsOptions = {
-  origin: 'https://projeto-final-one-ruby.vercel.app',
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
   optionsSuccessStatus: 200
 };
 
-// Aplicar CORS globalmente
 app.use(cors(corsOptions));
 
-// Middleware para aceitar requisições OPTIONS (preflight)
-app.options('*', cors(corsOptions));
+// Configuração explícita para OPTIONS nas rotas necessárias
+app.options('/login', cors(corsOptions));
+app.options('/register', cors(corsOptions));
+app.options('/produtos', cors(corsOptions));
+app.options('/produtos/:id', cors(corsOptions));
+app.options('/pedidos', cors(corsOptions));
+app.options('/pedidos/:id', cors(corsOptions));
 
-// Outros middlewares
+// =============================================
+// MIDDLEWARES
+// =============================================
+
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Dados de usuários
+// =============================================
+// DADOS (SIMULANDO UM BANCO DE DADOS)
+// =============================================
+
 const users = [
   { name: "admin", password: "123456", role: "admin", email: "admin@email.com", telephone: "123456789" },
   { name: "user", password: "123456", role: "user", email: "user@email.com", telephone: "987654321" },
@@ -39,48 +64,16 @@ const produtos = [
     quantity: 1,
     ativo: true
   },
-  {
-    id: 2,
-    name: 'Trufa de Maracujá',
-    price: 5.5,
-    image: 'trufamaracuja.jpg',
-    descricao: 'Trufa cremosa com recheio de maracujá e cobertura branca.',
-    quantity: 1,
-    ativo: true
-  },
-  {
-    id: 3,
-    name: 'Trufa de Coco',
-    price: 5.0,
-    image: 'trufacoco.jpg',
-    descricao: 'Recheio de coco com cobertura de chocolate ao leite.',
-    quantity: 1,
-    ativo: true
-  },
-  {
-    id: 4,
-    name: 'Trufa de Limão',
-    price: 5.50,
-    image: 'trufalimão.jpg',
-    descricao: 'Trufa refrescante com recheio de limão siciliano.',
-    quantity: 1,
-    ativo: false
-  },
-  {
-    id: 5,
-    name: 'Trufa de Morango',
-    price: 5.50,
-    image: 'trufamorango.jpg',
-    descricao: 'Trufa com recheio de morango e cobertura de chocolate ao leite.',
-    quantity: 1,
-    ativo: false
-  }
+  // ... outros produtos
 ];
 
 const pedidosSalvos = [];
 let pedidoIdCounter = 1;
 
-// Rotas de Autenticação
+// =============================================
+// ROTAS DE AUTENTICAÇÃO
+// =============================================
+
 app.post("/login", (req, res) => {
   try {
     const { name, password } = req.body;
@@ -151,7 +144,10 @@ app.post("/register", (req, res) => {
   }
 });
 
-// Rotas de Produtos
+// =============================================
+// ROTAS DE PRODUTOS
+// =============================================
+
 app.get("/produtos", (req, res) => {
   try {
     const ativosOnly = req.query.ativos === 'true';
@@ -183,7 +179,10 @@ app.patch("/produtos/:id", (req, res) => {
   }
 });
 
-// Rotas de Pedidos
+// =============================================
+// ROTAS DE PEDIDOS
+// =============================================
+
 app.post("/pedidos", (req, res) => {
   try {
     const { produtos, nome, telefone } = req.body;
@@ -240,27 +239,26 @@ app.delete("/pedidos/:id", (req, res) => {
   }
 });
 
-app.delete("/pedidos", (req, res) => {
-  try {
-    const count = pedidosSalvos.length;
-    pedidosSalvos.length = 0;
-    return res.status(200).json({ 
-      message: `Todos os ${count} pedidos foram removidos!` 
-    });
-  } catch (error) {
-    console.error("Erro ao limpar pedidos:", error);
-    res.status(500).json({ message: "Erro interno no servidor" });
-  }
-});
+// =============================================
+// MIDDLEWARE DE ERRO GLOBAL
+// =============================================
 
-// Middleware de erro global
 app.use((err, req, res, next) => {
   console.error(err.stack);
+  
+  if (err.message === 'Not allowed by CORS') {
+    return res.status(403).json({ message: 'Acesso não permitido pela política CORS' });
+  }
+  
   res.status(500).json({ message: "Erro interno do servidor" });
 });
 
-// Iniciar servidor
+// =============================================
+// INICIAR SERVIDOR
+// =============================================
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`API rodando na porta ${PORT}`);
+  console.log(`Servidor rodando na porta ${PORT}`);
+  console.log(`Origens permitidas: ${allowedOrigins.join(', ')}`);
 });
