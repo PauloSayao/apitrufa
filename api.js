@@ -4,13 +4,6 @@ const cors = require("cors");
 
 const app = express();
 
-const corsOptions = {
-  origin: ['http://localhost:4200', 'https://projeto-final-one-ruby.vercel.app'],
-  methods: ['GET', 'POST', 'PATCH', 'DELETE'],
-  allowedHeaders: ['Content-Type'],
-};
-
-app.use(cors(corsOptions));
 
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', 'https://projeto-final-one-ruby.vercel.app');
