@@ -4,29 +4,46 @@ const cors = require("cors");
 
 const app = express();
 
-// Configuração do CORS
-app.use(cors({
-  origin: 'https://projeto-final-one-ruby.vercel.app',
+// Configuração do CORS para o Render
+const allowedOrigins = ['https://projeto-final-one-ruby.vercel.app'];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type']
-}));
+  allowedHeaders: ['Content-Type'],
+  optionsSuccessStatus: 200
+};
 
 // Middlewares
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Dados iniciais (com senhas em texto puro para fins acadêmicos)
+// Configurar OPTIONS para cada rota individualmente
+const routesNeedingOptions = ['/login', '/register', '/produtos', '/pedidos'];
+
+routesNeedingOptions.forEach(route => {
+  app.options(route, cors(corsOptions));
+});
+
+// Dados iniciais (para fins acadêmicos)
 const users = [
   { 
     name: "admin", 
-    password: "123456", // Senha em texto puro
+    password: "123456", // Senha em texto puro (apenas para fins acadêmicos)
     role: "admin", 
     email: "admin@email.com",
     telephone: "123456789" 
   },
   { 
     name: "user", 
-    password: "123456", // Senha em texto puro
+    password: "123456", // Senha em texto puro (apenas para fins acadêmicos)
     role: "user", 
     email: "user@email.com",
     telephone: "987654321" 
@@ -120,7 +137,6 @@ app.post("/register", (req, res) => {
       return res.status(400).json({ message: "Preencha todos os campos obrigatórios!" });
     }
 
-    // Validação simples de email
     if (!email.includes('@') || !email.includes('.')) {
       return res.status(400).json({ message: "Email inválido!" });
     }
