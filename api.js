@@ -29,33 +29,6 @@ const users = [
   { name: "user", password: "123456", role: "user", email: "user@email.com", telephone: "987654321" },
 ];
 
-// Rotas de Autenticação
-app.post("/login", (req, res) => {
-  try {
-    const { name, password } = req.body;
-
-    if (!name || !password) {
-      return res.status(400).json({ message: "Nome e senha são obrigatórios!" });
-    }
-
-    const user = users.find(u => u.name === name && u.password === password);
-    
-    if (!user) {
-      return res.status(401).json({ message: "Usuário ou senha incorretos!" });
-    }
-
-    return res.status(200).json({
-      id: users.indexOf(user) + 1,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      telephone: user.telephone
-    });
-  } catch (error) {
-    console.error("Erro no login:", error);
-    res.status(500).json({ message: "Erro interno no servidor" });
-  }
-});
 const produtos = [
   {
     id: 1,
@@ -155,7 +128,7 @@ app.post("/register", (req, res) => {
 
     const newUser = {
       name,
-      password, // Senha em texto puro (para fins acadêmicos)
+      password,
       email,
       fullName,
       telephone,
